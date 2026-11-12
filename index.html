@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CD Lab Programs — Uppada Enos</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>
+  :root {
+    --bg: #0f1117;
+    --card: #1a1d27;
+    --border: #2a2d3e;
+    --accent: #4f8ef7;
+    --accent2: #a78bfa;
+    --text: #e2e8f0;
+    --muted: #8892a4;
+    --green: #34d399;
+    --tag-lex: #1e3a5f;
+    --tag-lex-text: #60a5fa;
+    --tag-c: #2d1b4e;
+    --tag-c-text: #c084fc;
+    --copy-bg: #2a2d3e;
+    --copy-hover: #3a3d4e;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --border: #e2e8f0;
+      --accent: #2563eb;
+      --accent2: #7c3aed;
+      --text: #1e293b;
+      --muted: #64748b;
+      --green: #059669;
+      --tag-lex: #dbeafe;
+      --tag-lex-text: #1d4ed8;
+      --tag-c: #ede9fe;
+      --tag-c-text: #6d28d9;
+      --copy-bg: #f1f5f9;
+      --copy-hover: #e2e8f0;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    padding: 24px 16px 48px;
+  }
+  .header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .header h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 6px;
+  }
+  .header p { color: var(--muted); font-size: 0.9rem; }
+  .tabs {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+  }
+  .tab {
+    padding: 8px 20px;
+    border-radius: 999px;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  .tab:hover { border-color: var(--accent); color: var(--accent); }
+  .tab.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+  .grid {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .card {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: var(--accent); }
+  .card-header {
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+  }
+  .card-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+  .qnum {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; font-weight: 700; color: white;
+    flex-shrink: 0;
+  }
+  .card-title { font-size: 0.9rem; font-weight: 600; color: var(--text); }
+  .card-sub { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+  .tag {
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .tag-lex { background: var(--tag-lex); color: var(--tag-lex-text); }
+  .tag-c   { background: var(--tag-c);   color: var(--tag-c-text);   }
+  .chevron {
+    color: var(--muted);
+    font-size: 0.8rem;
+    transition: transform 0.25s;
+    flex-shrink: 0;
+  }
+  .card.open .chevron { transform: rotate(180deg); }
+  .card-body { display: none; }
+  .card.open .card-body { display: block; }
+  .code-wrap { position: relative; }
+  .copy-btn {
+    position: absolute;
+    top: 10px; right: 10px;
+    padding: 5px 12px;
+    background: var(--copy-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--muted);
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    z-index: 2;
+  }
+  .copy-btn:hover { background: var(--copy-hover); color: var(--text); }
+  .copy-btn.copied { color: var(--green); border-color: var(--green); }
+  pre { margin: 0 !important; border-radius: 0 !important; }
+  pre code { font-size: 0.8rem !important; line-height: 1.6 !important; }
+  .info-bar {
+    padding: 10px 18px;
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+    display: flex; gap: 16px; flex-wrap: wrap;
+  }
+  .info-item { font-size: 0.75rem; color: var(--muted); }
+  .info-item span { color: var(--text); font-weight: 500; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>CD Lab Programs</h1>
+  <p>Uppada Enos &nbsp;·&nbsp; 23XV1M0530 &nbsp;·&nbsp; CSE &nbsp;·&nbsp; 4th Year</p>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="filter('all',this)">All 8</button>
+  <button class="tab" onclick="filter('lex',this)">LEX (4)</button>
+  <button class="tab" onclick="filter('c',this)">C Programs (4)</button>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<script>
+const programs = [
+  {
+    q: 'Q2', type: 'lex',
+    title: 'Recognize & Display Keywords, Numbers, Words',
+    file: 'keywords.l',
+    code: `%{
+    #include<stdio.h>
+%}
+
+keyword   int|float|char|double|if|else|for|while|return|void
+digit     [0-9]
+letter    [a-zA-Z]
+
+%%
+
+{keyword}       { printf("Keyword  : %s\\n", yytext); }
+{digit}+        { printf("Number   : %s\\n", yytext); }
+{letter}+       { printf("Word     : %s\\n", yytext); }
+[ \\t\\n]+      ;
+.               { printf("Symbol   : %s\\n", yytext); }
+
+%%
+
+int main()
+{
+    printf("Enter string: ");
+    yylex();
+    return 0;
+}
+
+int yywrap()
+{
+    return 1;
+}`
+  },
+  {
+    q: 'Q4', type: 'lex',
+    title: 'Count Vowels & Consonants',
+    file: 'vowels.l',
+    code: `%{
+    #include<stdio.h>
+    int vowels = 0, consonants = 0;
+%}
+
+vowel    [aeiouAEIOU]
+letter   [a-zA-Z]
+
+%%
+
+{vowel}     { vowels++; }
+{letter}    { consonants++; }
+[ \\t\\n]+  ;
+.           ;
+
+%%
+
+int main()
+{
+    printf("Enter a string: ");
+    yylex();
+    printf("Vowels     : %d\\n", vowels);
+    printf("Consonants : %d\\n", consonants);
+    return 0;
+}
+
+int yywrap()
+{
+    return 1;
+}`
+  },
+  {
+    q: 'Q6', type: 'lex',
+    title: 'Count Lines, Words, Spaces, Characters',
+    file: 'count.l',
+    code: `%{
+    #include<stdio.h>
+    int lines = 0, words = 0, spaces = 0, characters = 0;
+%}
+
+word    [a-zA-Z]+
+space   [ \\t]
+
+%%
+
+{word}      { words++; characters += yyleng; }
+\\n         { lines++; }
+{space}     { spaces++; }
+.           { characters++; }
+
+%%
+
+int main()
+{
+    printf("Enter text (Ctrl+D to stop):\\n");
+    yylex();
+    printf("Lines      : %d\\n", lines);
+    printf("Words      : %d\\n", words);
+    printf("Spaces     : %d\\n", spaces);
+    printf("Characters : %d\\n", characters);
+    return 0;
+}
+
+int yywrap()
+{
+    return 1;
+}`
+  },
+  {
+    q: 'Q8', type: 'lex',
+    title: 'Count +ve/-ve Integers & Fractions',
+    file: 'numbers.l',
+    code: `%{
+    #include<stdio.h>
+    int pos_int = 0, neg_int = 0, pos_frac = 0, neg_frac = 0;
+%}
+
+%%
+
+-[0-9]*\\.[0-9]+      { neg_frac++; }
+[+]?[0-9]*\\.[0-9]+   { pos_frac++; }
+-[0-9]+               { neg_int++;  }
+[+]?[0-9]+            { pos_int++;  }
+[ \\t\\n]+            ;
+.                     ;
+
+%%
+
+int main()
+{
+    printf("Enter numbers (Ctrl+D to stop):\\n");
+    yylex();
+    printf("Positive Integers  : %d\\n", pos_int);
+    printf("Negative Integers  : %d\\n", neg_int);
+    printf("Positive Fractions : %d\\n", pos_frac);
+    printf("Negative Fractions : %d\\n", neg_frac);
+    return 0;
+}
+
+int yywrap()
+{
+    return 1;
+}`
+  },
+  {
+    q: 'Q3', type: 'c',
+    title: 'RDP for S → aSb | ε',
+    file: 'rdp_asb.c',
+    code: `#include<stdio.h>
+
+char input[100];
+int i = 0;
+
+/* S -> aSb | epsilon */
+void S()
+{
+    if(input[i] == 'a')
+    {
+        i++;           /* match 'a' */
+        S();           /* recursive call */
+        if(input[i] == 'b')
+            i++;       /* match 'b' */
+        else
+        {
+            printf("Invalid\\n");
+            i = -1;
+        }
+    }
+    /* else epsilon — do nothing */
+}
+
+int main()
+{
+    printf("Enter string: ");
+    scanf("%s", input);
+    S();
+    if(i != -1 && input[i] == '\\0')
+        printf("Valid\\n");
+    else
+        printf("Invalid\\n");
+    return 0;
+}`
+  },
+  {
+    q: 'Q7', type: 'c',
+    title: 'Compute FIRST Set of a Grammar',
+    file: 'first_set.c',
+    code: `#include<stdio.h>
+#include<string.h>
+
+char prod[10][10];
+char first[26][10];
+int n;
+
+int isTerminal(char c)
+{
+    return !(c >= 'A' && c <= 'Z');
+}
+
+void addFirst(int idx, char c)
+{
+    if(strchr(first[idx], c) == NULL)
+    {
+        int len = strlen(first[idx]);
+        first[idx][len]   = c;
+        first[idx][len+1] = '\\0';
+    }
+}
+
+void computeFirst(char c)
+{
+    int idx = c - 'A';
+    if(first[idx][0] != '\\0')
+        return;
+
+    int i, j;
+    for(i = 0; i < n; i++)
+    {
+        if(prod[i][0] == c)
+        {
+            char rhs = prod[i][3];
+            if(isTerminal(rhs))
+            {
+                addFirst(idx, rhs);
+            }
+            else
+            {
+                computeFirst(rhs);
+                int rIdx = rhs - 'A';
+                for(j = 0; first[rIdx][j] != '\\0'; j++)
+                    addFirst(idx, first[rIdx][j]);
+            }
+        }
+    }
+}
+
+int main()
+{
+    int i, j;
+    printf("Enter number of productions: ");
+    scanf("%d", &n);
+    printf("Enter productions (format E->T):\\n");
+    for(i = 0; i < n; i++)
+        scanf("%s", prod[i]);
+
+    memset(first, 0, sizeof(first));
+    for(i = 0; i < n; i++)
+        computeFirst(prod[i][0]);
+
+    printf("\\nFIRST Sets:\\n");
+    for(i = 0; i < n; i++)
+    {
+        char sym = prod[i][0];
+        printf("FIRST(%c) = { ", sym);
+        for(j = 0; first[sym-'A'][j] != '\\0'; j++)
+            printf("%c ", first[sym-'A'][j]);
+        printf("}\\n");
+    }
+    return 0;
+}`
+  },
+  {
+    q: 'Q1', type: 'c',
+    title: 'RDP for E→TE\', E\'→+TE\'|ε, T→FT\', T\'→*FT\'|ε, F→(E)|id',
+    file: 'rdp_expr.c',
+    code: `#include<stdio.h>
+#include<ctype.h>
+
+char input[100];
+int i = 0;
+
+void E(); void EP(); void T(); void TP(); void F();
+
+/* E -> T E' */
+void E()  { T(); EP(); }
+
+/* E' -> + T E' | epsilon */
+void EP()
+{
+    if(input[i] == '+')
+    {
+        i++;    /* consume + */
+        T();
+        EP();
+    }
+}
+
+/* T -> F T' */
+void T()  { F(); TP(); }
+
+/* T' -> * F T' | epsilon */
+void TP()
+{
+    if(input[i] == '*')
+    {
+        i++;    /* consume * */
+        F();
+        TP();
+    }
+}
+
+/* F -> (E) | id */
+void F()
+{
+    if(isalnum(input[i]))
+    {
+        i++;    /* consume id */
+    }
+    else if(input[i] == '(')
+    {
+        i++;        /* consume ( */
+        E();
+        if(input[i] == ')')
+            i++;    /* consume ) */
+        else
+        {
+            printf("Invalid\\n");
+            i = -1;
+        }
+    }
+    else
+    {
+        printf("Invalid\\n");
+        i = -1;
+    }
+}
+
+int main()
+{
+    printf("Enter expression: ");
+    scanf("%s", input);
+    E();
+    if(i != -1 && input[i] == '\\0')
+        printf("Valid\\n");
+    else
+        printf("Invalid\\n");
+    return 0;
+}`
+  },
+  {
+    q: 'Q5', type: 'c',
+    title: 'Operator Precedence Parser (Shift-Reduce)',
+    file: 'opp.c',
+    code: `#include<stdio.h>
+#include<string.h>
+#include<ctype.h>
+
+#define SYMS 8
+
+char symbols[SYMS] = {'i','+','-','*','/','(',')', '$'};
+
+char table[SYMS][SYMS] = {
+    /*i*/ { ' ','>','>','>','>',' ','>','>' },
+    /*+*/ { '<','>','>','<','<','<','>','>' },
+    /*-*/ { '<','>','>','<','<','<','>','>' },
+    /***/ { '<','>','>','>','>','<','>','>' },
+    /*/*/ { '<','>','>','>','>','<','>','>' },
+    /*(*/ { '<','<','<','<','<','<','=',' ' },
+    /*)*/ { ' ','>','>','>','>',' ','>','>' },
+    /*$*/ { '<','<','<','<','<','<',' ',' ' }
+};
+
+int symIndex(char c)
+{
+    int k;
+    for(k = 0; k < SYMS; k++)
+        if(symbols[k] == c) return k;
+    return -1;
+}
+
+char stack[100];
+int top = -1;
+
+void push(char c) { stack[++top]=c; stack[top+1]='\\0'; }
+char pop()        { char c=stack[top--]; stack[top+1]='\\0'; return c; }
+char peek()       { return stack[top]; }
+
+int main()
+{
+    char input[100], buf[100];
+    int ip=0, len, k, j=0;
+    stack[0]='\\0';
+
+    printf("Enter expression (use i for id, e.g. i+i*i): ");
+    scanf("%s", buf);
+
+    len = strlen(buf);
+    for(k=0; k<len; k++) input[j++]=buf[k];
+    input[j++]='$'; input[j]='\\0';
+
+    push('$');
+
+    printf("\\n%-15s %-15s %-10s\\n","STACK","INPUT","ACTION");
+    printf("------------------------------------------\\n");
+
+    while(1)
+    {
+        char a = peek();
+        char b = input[ip];
+        printf("%-15s %-15s ", stack, input+ip);
+
+        if(a=='$' && b=='$')
+        {
+            printf("ACCEPT\\n");
+            printf("\\nExpression is VALID\\n");
+            break;
+        }
+
+        int ai = symIndex(a);
+        int bi = symIndex(b);
+
+        if(ai==-1 || bi==-1) { printf("ERROR\\n"); break; }
+
+        char rel = table[ai][bi];
+
+        if(rel=='<' || rel=='=')
+        {
+            printf("SHIFT  %c\\n", b);
+            push(b); ip++;
+        }
+        else if(rel=='>')
+        {
+            char popped;
+            do { popped = pop(); }
+            while(top>=0 &&
+                  table[symIndex(peek())][symIndex(popped)]!='<' &&
+                  peek()!='$');
+            printf("REDUCE\\n");
+        }
+        else
+        {
+            printf("ERROR\\n");
+            printf("\\nExpression is INVALID\\n");
+            break;
+        }
+    }
+    return 0;
+}`
+  }
+];
+
+function filter(type, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.card').forEach(c => {
+    if(type === 'all' || c.dataset.type === type)
+      c.classList.remove('hidden');
+    else
+      c.classList.add('hidden');
+  });
+}
+
+function toggleCard(card) {
+  card.classList.toggle('open');
+}
+
+function copyCode(btn, code) {
+  navigator.clipboard.writeText(code).then(() => {
+    btn.textContent = '✓ Copied';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = 'Copy';
+      btn.classList.remove('copied');
+    }, 2000);
+  });
+}
+
+const grid = document.getElementById('grid');
+
+programs.forEach((p, idx) => {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.dataset.type = p.type;
+
+  const tagClass = p.type === 'lex' ? 'tag-lex' : 'tag-c';
+  const tagText  = p.type === 'lex' ? 'LEX' : 'C';
+
+  card.innerHTML = `
+    <div class="card-header" onclick="toggleCard(this.parentElement)">
+      <div class="card-left">
+        <div class="qnum">${p.q}</div>
+        <div>
+          <div class="card-title">${p.title}</div>
+          <div class="card-sub">${p.file}</div>
+        </div>
+      </div>
+      <span class="tag ${tagClass}">${tagText}</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="card-body">
+      <div class="code-wrap">
+        <button class="copy-btn" onclick="copyCode(this, programs[${idx}].code)">Copy</button>
+        <pre><code class="language-c">${p.code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</code></pre>
+      </div>
+      <div class="info-bar">
+        <div class="info-item">File: <span>${p.file}</span></div>
+        <div class="info-item">Type: <span>${p.type.toUpperCase()}</span></div>
+        <div class="info-item">Question: <span>${p.q}</span></div>
+      </div>
+    </div>
+  `;
+  grid.appendChild(card);
+});
+
+hljs.highlightAll();
+</script>
+</body>
+</html>
